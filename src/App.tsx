@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import type { FormEvent } from 'react';
 import {
   ShoppingBag,
   Heart,
@@ -6,21 +7,16 @@ import {
   X,
   ChevronDown,
   Menu,
-  Filter,
   ArrowRight,
   Check,
   Star,
-  RefreshCw,
   ShieldCheck,
-  Truck,
   Sparkles,
   SlidersHorizontal,
   Plus,
   Minus,
   Eye,
   CheckCircle2,
-  MapPin,
-  Info,
   Users,
   Award,
   ChevronRight,
@@ -178,6 +174,13 @@ const PRODUCTS = [
     craftsmanship: 'Hand-cut scalloped borders finished with micro-bead embellishments.'
   }
 ];
+type Product = (typeof PRODUCTS)[number];
+
+type CartItem = Product & {
+  selectedSize: string;
+  selectedColor: string;
+  quantity: number;
+};
 
 const REVIEWS_DATA = [
   {
@@ -215,27 +218,27 @@ const REVIEWS_DATA = [
 // Main Application Component
 export default function App() {
   // State management
-  const [currency, setCurrency] = useState('INR');
+  const [currency, setCurrency] = useState<'INR' | 'USD'>('INR');
   const [scrolled, setScrolled] = useState(false);
-  const [cart, setCart] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [wishlist, setWishlist] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
   const [pincode, setPincode] = useState('');
-  const [deliveryResult, setDeliveryResult] = useState(null);
+  const [deliveryResult, setDeliveryResult] = useState<string | null>(null);
 
   // Filter States
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeOccasion, setActiveOccasion] = useState('All');
-  const [selectedSizeFilter, setSelectedSizeFilter] = useState('All');
+  const [selectedSizeFilter] = useState('All');
   const [sortBy, setSortBy] = useState('featured');
 
   // Newsletter state
@@ -256,7 +259,7 @@ export default function App() {
   }, []);
 
   // Toast notifier function
-  const showToast = (msg) => {
+  const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
@@ -264,14 +267,14 @@ export default function App() {
   };
 
   // Format currency helper
-  const formatPrice = (priceINR) => {
+  const formatPrice = (priceINR: number) => {
     const curr = CURRENCIES[currency];
     const converted = Math.round(priceINR * curr.rate);
     return `${curr.symbol} ${converted.toLocaleString()}`;
   };
 
   // Wishlist toggle
-  const toggleWishlist = (product) => {
+  const toggleWishlist = (product: Product) => {
     if (wishlist.some(item => item.id === product.id)) {
       setWishlist(wishlist.filter(item => item.id !== product.id));
       showToast('Removed from your Wishlist');
@@ -282,7 +285,11 @@ export default function App() {
   };
 
   // Cart operations
-  const addToCart = (product, size, color) => {
+  const addToCart = (
+    product: Product,
+    size?: string,
+    color?: string
+  ) => {
     const chosenSize = size || (product.sizes ? product.sizes[0] : 'Free Size');
     const chosenColor = color || (product.colors ? product.colors[0].name : '');
 
@@ -309,7 +316,7 @@ export default function App() {
     setIsCartOpen(true);
   };
 
-  const updateQuantity = (index, delta) => {
+  const updateQuantity = (index: number, delta: number) => {
     const updated = [...cart];
     const newQty = updated[index].quantity + delta;
     if (newQty <= 0) {
@@ -326,7 +333,7 @@ export default function App() {
   const finalTotalINR = Math.max(0, subtotalINR - discountAmountINR);
 
   // Apply promo
-  const handleApplyPromo = (e) => {
+  const handleApplyPromo = (e: FormEvent) => {
     e.preventDefault();
     if (promoCode.trim().toUpperCase() === 'AAVIRA10') {
       setDiscountPercent(10);
@@ -337,7 +344,7 @@ export default function App() {
   };
 
   // Pincode Check Simulator
-  const checkDelivery = (e) => {
+  const checkDelivery = (e: FormEvent) => {
     e.preventDefault();
     if (pincode.length >= 5) {
       setDeliveryResult(`Complimentary Express Delivery available to ${pincode} by 3-5 business days.`);
@@ -548,7 +555,7 @@ export default function App() {
               key={idx}
               onClick={() => {
                 setActiveOccasion(col.occasion);
-                document.getElementById('catalog').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('catalog')!.scrollIntoView({ behavior: 'smooth' });
               }}
               className="group relative h-[420px] overflow-hidden cursor-pointer shadow-sm border border-[#C8AE8D]/20"
             >
